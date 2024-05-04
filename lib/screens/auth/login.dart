@@ -149,6 +149,9 @@ class _LoginScreenState extends State<LoginScreen> {
                               loginController.text,
                               passwordController.text,
                             )) {
+                              final SharedPreferences prefs =
+                                  await SharedPreferences.getInstance();
+                              prefs.setString('email', loginController.text);
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
@@ -185,8 +188,9 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<bool> login(String username, String password) async {
     var client = http.Client();
     try {
-      var url = Uri.https('9d47-182-66-218-123.ngrok-free.app',
+      var url = Uri.https('8227-182-66-218-123.ngrok-free.app',
           'Capstone_Project/AuthenticationService/Login.php');
+      print("URL: " + url.toString());
       var response = await http.post(
         url,
         body: {
@@ -194,7 +198,8 @@ class _LoginScreenState extends State<LoginScreen> {
           'password': password,
         },
       );
-      var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes)) as Map;
+      print(response.body);
+      var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
       print(decodedResponse);
       if (decodedResponse['status'] == 'success') {
         return true;

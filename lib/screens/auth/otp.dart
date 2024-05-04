@@ -2,13 +2,14 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:animate_do/animate_do.dart';
-import 'package:testnew/screens/info_screen.dart';
 import 'package:flutter_otp_text_field/flutter_otp_text_field.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:testnew/screens/products/products.dart';
 
 class OTPScreen extends StatefulWidget {
   const OTPScreen({super.key});
+
   @override
-  // ignore: library_private_types_in_public_api
   _OTPScreenState createState() => _OTPScreenState();
 }
 
@@ -71,33 +72,59 @@ class _OTPScreenState extends State<OTPScreen> {
                     child: OtpTextField(
                       numberOfFields: 6,
                       borderColor: const Color(0xFF512DA8),
-                      //set to true to show as box or false to show as dash
                       showFieldAsBox: true,
-                      //runs when a code is typed in
-                      onCodeChanged: (String code) {
-                        //handle validation or checks here
-                      },
-                      //runs when every textfield is filled
+                      onCodeChanged: (String code) {},
                       onSubmit: (String verificationCode) async {
                         var client = http.Client();
                         try {
+                          SharedPreferences prefs =
+                              await SharedPreferences.getInstance();
+                          final $email = prefs.getString('email');
+                          final params = {
+                            'otp': verificationCode,
+                            'email': $email,
+                          };
                           var url = Uri.https(
-                              '9d47-182-66-218-123.ngrok-free.app',
-                              'Capstone_Project/AuthenticationService/Login.php');
-                          var response = await http.get(
-                            url,
-                            headers: {
-                              'otp': verificationCode,
-                            },
-                          );
-                          // var decodedResponse =
-                          //     jsonDecode(utf8.decode(response.bodyBytes))
-                          //         as Map;
-                          print(response);
+                              '8227-182-66-218-123.ngrok-free.app',
+                              'Capstone_Project/AuthenticationService/Login.php',
+                              params);
+                          var response = await http.get(url);
+                          // print('Server response: ${response.body}');
+                          if (response.body.isNotEmpty) {
+                            var responseData = jsonDecode(response.body);
+                            print(responseData);
+                            if (responseData['status'] == 'success') {
+                              // Handle success response
+                              if (responseData['vendor_id'] != null &&
+                                  responseData['auth_token'] != null) {
+                                final SharedPreferences prefs =
+                                    await SharedPreferences.getInstance();
+                                await prefs.setString('vendor_id',
+                                    responseData['vendor_id'].toString());
+                                await prefs.setString('auth_token',
+                                    responseData['auth_token'].toString());
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        const ProductsScreen(),
+                                  ),
+                                );
+                              }
+                              print('Login Successful');
+                            } else {
+                              // Handle error response
+                              print('Login Error: ${responseData['message']}');
+                            }
+                          } else {
+                            print('Empty response received from the server');
+                          }
+                        } catch (e) {
+                          print('Error decoding JSON: $e');
                         } finally {
                           client.close();
                         }
-                      }, // end onSubmit
+                      },
                     ),
                   ),
                   const SizedBox(

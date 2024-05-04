@@ -15,8 +15,11 @@ class _SplashScreenState extends State<SplashScreen> {
   route() async {
     await Future.delayed(const Duration(seconds: 3));
     final prefs = await SharedPreferences.getInstance();
+    // prefs.remove('vendor_id');
+    // prefs.remove('auth_token');
     final vendorId = prefs.getString('vendor_id');
     final authToken = prefs.getString('auth_token');
+    print(vendorId);
     if (vendorId != null && authToken != null) {
       Navigator.pushReplacement(
         // ignore: use_build_context_synchronously

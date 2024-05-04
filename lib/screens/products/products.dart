@@ -95,17 +95,18 @@ class _ProductsScreenState extends State<ProductsScreen> {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final String? vendor_id = prefs.getString('vendor_id');
     final String? auth_token = prefs.getString('auth_token');
-    print("Vendor Id: " +
-        vendor_id.toString() +
-        "    Auth Token: " +
-        auth_token.toString());
+    print(
+      "Vendor Id: " +
+          vendor_id.toString() +
+          "    Auth Token: " +
+          auth_token.toString(),
+    );
 
-    var url = Uri.https('api.jsonbin.io', 'v3/b/662ccf95acd3cb34a83ef51f');
-    var response = await http.get(url, headers: {
-      // "Host": "",
-      "Content-Type": "application/json",
-      "X-Master-key":
-          "\$2b\$10\$X2VO9VQBusmlxxAlXcjJ9ubU2ub7ZPF5So6ZVdzP9i5hO0PeDTJhy",
+    var url = Uri.https('8227-182-66-218-123.ngrok-free.app',
+        'Capstone_Project/ProductService/ProductDetails.php');
+    var response = await http.post(url, body: {
+      'vendor_id': vendor_id,
+      'auth_token': auth_token,
     });
     if (response.statusCode == 200) {
       var jsonResponse =
