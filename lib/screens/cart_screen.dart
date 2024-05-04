@@ -12,6 +12,7 @@ class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
 
   @override
+  // ignore: library_private_types_in_public_api
   _CartScreenState createState() => _CartScreenState();
 }
 
@@ -62,7 +63,6 @@ class _CartScreenState extends State<CartScreen> {
     startDB();
     final db = await getDB();
     List data = await db.rawQuery("SELECT * FROM carts");
-    print(data.toString());
     return data;
   }
 
@@ -103,7 +103,7 @@ class _CartScreenState extends State<CartScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Container(
+                SizedBox(
                   height: 30,
                   width: 140,
                   child: TextField(
@@ -122,12 +122,11 @@ class _CartScreenState extends State<CartScreen> {
                     backgroundColor: const Color.fromRGBO(143, 148, 251, 1),
                   ),
                   onPressed: () {
-                    print("Added");
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) =>
-                              const AddCustomerScreen()), //Sharat
+                        builder: (context) => const AddCustomerScreen(),
+                      ), //Sharat
                     );
                   },
                   child: const Icon(Icons.add),

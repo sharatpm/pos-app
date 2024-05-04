@@ -1,6 +1,8 @@
 import 'package:animate_do/animate_do.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:testnew/screens/auth/otp.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -11,8 +13,9 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
-  final loginController = TextEditingController();
+  final emailController = TextEditingController();
   final passwordController = TextEditingController();
+  final cpasswordController = TextEditingController();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -83,7 +86,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               ),
                             ),
                             child: TextField(
-                              controller: loginController,
+                              controller: emailController,
                               decoration: InputDecoration(
                                 border: InputBorder.none,
                                 hintText: "Email or Phone number",
@@ -103,6 +106,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               ),
                             ),
                             child: TextField(
+                              controller: passwordController,
                               obscureText: true,
                               decoration: InputDecoration(
                                 border: InputBorder.none,
@@ -116,6 +120,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           Container(
                             padding: const EdgeInsets.all(8.0),
                             child: TextField(
+                              controller: cpasswordController,
                               obscureText: true,
                               decoration: InputDecoration(
                                   border: InputBorder.none,
@@ -158,15 +163,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          onPressed: () {
-                            print(loginController.text);
-                            print(passwordController.text);
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => OTPScreen(),
-                              ),
-                            );
+                          onPressed: () async {
+                            if (passwordController.text ==
+                                cpasswordController.text) {
+                              if (await register(emailController.text,
+                                  passwordController.text)) {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => OTPScreen(),
+                                  ),
+                                );
+                              }
+                            }
                           },
                         ),
                       ),
@@ -182,5 +191,28 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
       ),
     );
+  }
+
+  Future<bool> register(String email, String password) async {
+    var client = http.Client();
+    try {
+      var url = Uri.https('8227-182-66-218-123.ngrok-free.app',
+          'Capstone_Project/AuthenticationService/Signup.php');
+      var response = await http.post(
+        url,
+        body: {
+          'email': email,
+          'password': password,
+        },
+      );
+      var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
+      if (decodedResponse['status'] == 'success') {
+        return true;
+      } else {
+        return false;
+      }
+    } finally {
+      client.close();
+    }
   }
 }

@@ -13,8 +13,11 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen> {
   route() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final url = '8227-182-66-218-123.ngrok-free.app';
+    prefs.setString('url', url);
+
     await Future.delayed(const Duration(seconds: 3));
-    final prefs = await SharedPreferences.getInstance();
     // prefs.remove('vendor_id');
     // prefs.remove('auth_token');
     final vendorId = prefs.getString('vendor_id');

@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -95,25 +97,22 @@ class _ProductsScreenState extends State<ProductsScreen> {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final String? vendor_id = prefs.getString('vendor_id');
     final String? auth_token = prefs.getString('auth_token');
-    print(
-      "Vendor Id: " +
-          vendor_id.toString() +
-          "    Auth Token: " +
-          auth_token.toString(),
-    );
-
-    var url = Uri.https('8227-182-66-218-123.ngrok-free.app',
-        'Capstone_Project/ProductService/ProductDetails.php');
-    var response = await http.post(url, body: {
-      'vendor_id': vendor_id,
+    final String? rurl = prefs.getString("url");
+    final params = {
       'auth_token': auth_token,
-    });
+    };
+    var url = Uri.https(
+      rurl ?? '',
+      'Capstone_Project/ProductService/ProductDetails.php',
+      params,
+    );
+    var response = await http.get(url);
     if (response.statusCode == 200) {
       var jsonResponse =
           convert.jsonDecode(response.body) as Map<String, dynamic>;
-      products = jsonResponse['record']['products'];
+      products = jsonResponse['products'];
       // print(jsonResponse['record']['products']);
-      return jsonResponse['record']['products'];
+      return jsonResponse['products'];
     } else {
       throw ();
     }
@@ -174,7 +173,6 @@ class _ProductsScreenState extends State<ProductsScreen> {
                     backgroundColor: const Color.fromRGBO(143, 148, 251, 1),
                   ),
                   onPressed: () {
-                    print("Added");
                     Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -210,7 +208,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                snapshot.data![index]['title'],
+                                snapshot.data![index]['product_name'],
                                 style: const TextStyle(
                                   fontWeight: FontWeight.w500,
                                   color: Colors.black87,
@@ -228,7 +226,9 @@ class _ProductsScreenState extends State<ProductsScreen> {
                             ],
                           ),
                           trailing: CartButton(
-                              id: index, cart: cart, products: products),
+                              id: snapshot.data![index]['id'],
+                              cart: cart,
+                              products: products),
                         );
                       },
                     );
@@ -354,13 +354,9 @@ class _CartButtonState extends State<CartButton> {
   }
 
   Future<List<Cart>> carts() async {
-    // Get a reference to the database.
     final db = await getDB();
 
-    // Query the table for all the dogs.
     final List<Map<String, Object?>> cartMaps = await db.query('carts');
-
-    // Convert the list of each dog's fields into a list of `Dog` objects.
     return [
       for (final {
             'id': id as int,
@@ -389,9 +385,9 @@ class _CartButtonState extends State<CartButton> {
     final db = await getDB();
     int id = widget.id;
     await db.rawUpdate('UPDATE carts SET quantity = quantity - 1 WHERE ID=$id');
-    List quantity_resp =
+    List quantityResp =
         await db.rawQuery("SELECT QUANTITY FROM carts WHERE id=$id");
-    int quantity = quantity_resp[0]['quantity'];
+    int quantity = quantityResp[0]['quantity'];
     if (quantity == 0) {
       await db.rawDelete("DELETE FROM carts WHERE id =$id");
     }
@@ -413,12 +409,20 @@ class _CartButtonState extends State<CartButton> {
               )),
           child: const Text("Add"),
           onPressed: () {
+            String title = "";
+            String price = "";
+            for (var product in widget.products) {
+              if (product['id'] == widget.id) {
+                title = product['product_name'];
+                price = product['price'];
+              }
+            }
             setState(() {
               if (!widget.cart.keys.contains(widget.id)) {
                 widget.cart[widget.id] = Cart(
                   id: widget.id,
-                  title: widget.products[widget.id]['title'],
-                  price: widget.products[widget.id]['price'].toDouble(),
+                  title: title,
+                  price: double.parse(price),
                   barcode: 123456789,
                   quantity: 1,
                 );
@@ -463,7 +467,7 @@ class _CartButtonState extends State<CartButton> {
               alignment: Alignment.center,
               width: 30,
               height: 30,
-              child: Text(widget.cart[widget.id].toString()),
+              child: Text(widget.cart[widget.id].toString() ?? '0'),
             ),
             SizedBox(
               width: 30,
@@ -492,5 +496,11 @@ class _CartButtonState extends State<CartButton> {
         ),
       );
     }
+  }
+
+  getURL() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final url = prefs.getString('url');
+    return url;
   }
 }

@@ -188,8 +188,8 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<bool> login(String username, String password) async {
     var client = http.Client();
     try {
-      var url = Uri.https('8227-182-66-218-123.ngrok-free.app',
-          'Capstone_Project/AuthenticationService/Login.php');
+      var url = Uri.https(
+          await getURL(), 'Capstone_Project/AuthenticationService/Login.php');
       print("URL: " + url.toString());
       var response = await http.post(
         url,
@@ -221,5 +221,11 @@ class _LoginScreenState extends State<LoginScreen> {
     // } finally {
     //   client.close();
     // }
+  }
+
+  getURL() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final url = prefs.getString('url');
+    return url;
   }
 }

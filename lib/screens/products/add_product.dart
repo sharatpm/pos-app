@@ -39,21 +39,21 @@ class _AddProductScreenState extends State<AddProductScreen> {
     super.dispose();
   }
 
-  Future<void> addProduct(
+  Future<bool> addProduct(
       String title, String price, String inventory, String barcode) async {
     var client = http.Client();
 
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    var $auth_token = await prefs.getString('auth_token');
-    var $vendor_id = await prefs.getString('vendor_id');
+    var authToken = prefs.getString('auth_token');
+    var rUrl = prefs.getString("url");
+    print(authToken);
     try {
-      var url = Uri.https('8227-182-66-218-123.ngrok-free.app',
-          'Capstone_Project/ProductService/ProductDetails.php');
+      var url = Uri.https(
+          rUrl ?? '', 'Capstone_Project/ProductService/ProductDetails.php');
       var response = await http.post(
         url,
         body: {
-          "auth_token": $auth_token,
-          "vendor_id": $vendor_id,
+          "auth_token": authToken,
           "product_name": title,
           "price": price,
           "inventory": inventory,
@@ -62,6 +62,13 @@ class _AddProductScreenState extends State<AddProductScreen> {
       );
       var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes)) as Map;
       print(decodedResponse);
+      if (decodedResponse['status'] == 'success') {
+        return true;
+      } else if (decodedResponse['status'] == 'error') {
+        return false;
+      } else {
+        return false;
+      }
     } finally {
       client.close();
     }
@@ -88,7 +95,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
             ),
           ),
           Padding(
-            padding: EdgeInsets.all(20),
+            padding: const EdgeInsets.all(20),
             child: Column(
               children: [
                 TextField(
@@ -152,14 +159,18 @@ class _AddProductScreenState extends State<AddProductScreen> {
                   backgroundColor: const Color.fromRGBO(143, 148, 251, 1),
                 ),
                 onPressed: () async {
-                  await addProduct(
+                  print("Price: " + priceController.text.toString());
+                  print("Title: " + titleController.text.toString());
+                  print("Inventory: " + inventoryController.text.toString());
+                  if (await addProduct(
                     titleController.text.toString(),
                     priceController.text.toString(),
                     inventoryController.text.toString(),
-                    barcode == '-1' ? '' : barcode,
-                  );
-                  // ignore: use_build_context_synchronously
-                  Navigator.pop(context);
+                    barcode = '794569789',
+                  )) {
+                    // ignore: use_build_context_synchronously
+                    Navigator.pop(context);
+                  }
                 },
                 child: const Text("Submit"),
               )
