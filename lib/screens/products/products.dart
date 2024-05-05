@@ -95,7 +95,6 @@ class _ProductsScreenState extends State<ProductsScreen> {
 
   Future<List> fetchData() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    final String? vendor_id = prefs.getString('vendor_id');
     final String? auth_token = prefs.getString('auth_token');
     final String? rurl = prefs.getString("url");
     final params = {
@@ -467,7 +466,7 @@ class _CartButtonState extends State<CartButton> {
               alignment: Alignment.center,
               width: 30,
               height: 30,
-              child: Text(widget.cart[widget.id].toString() ?? '0'),
+              child: Text(widget.cart[widget.id].toString()),
             ),
             SizedBox(
               width: 30,
