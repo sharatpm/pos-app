@@ -52,13 +52,14 @@ class _AddProductScreenState extends State<AddProductScreen> {
           rUrl ?? '', 'Capstone_Project/ProductService/ProductDetails.php');
       var response = await http.post(
         url,
-        body: {
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({
           "auth_token": authToken,
           "product_name": title,
           "price": price,
           "inventory": inventory,
           "barcode": barcode,
-        },
+        }),
       );
       var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes)) as Map;
       print(decodedResponse);
@@ -166,7 +167,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     titleController.text.toString(),
                     priceController.text.toString(),
                     inventoryController.text.toString(),
-                    barcode = '794569789',
+                    barcode = '694569789',
                   )) {
                     // ignore: use_build_context_synchronously
                     Navigator.pop(context);

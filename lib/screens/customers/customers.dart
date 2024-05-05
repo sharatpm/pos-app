@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:simple_barcode_scanner/simple_barcode_scanner.dart';
 import 'package:testnew/screens/account_screen.dart';
 import 'package:testnew/screens/cart_screen.dart';
 import 'package:testnew/screens/customers/add_customer.dart';
 import 'package:testnew/screens/print_screen.dart';
-import 'dart:convert' as convert;
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 import 'package:testnew/screens/products/products.dart';
 
@@ -26,16 +28,29 @@ class _CustomersScreenState extends State<CustomersScreen> {
   ];
 
   Future<List> fetchData() async {
-    var url = Uri.https('dummyjson.com', 'users');
-    var response = await http.get(url);
-    if (response.statusCode == 200) {
-      var jsonResponse =
-          convert.jsonDecode(response.body) as Map<String, dynamic>;
-      customers = jsonResponse['users'];
-      print(customers);
-      return customers;
-    } else {
-      throw ();
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    var authToken = prefs.getString('auth_token');
+    var rUrl = prefs.getString("url");
+    var client = http.Client();
+    try {
+      var params = {
+        'auth_token': authToken ?? '',
+        'all_customers': "true",
+      };
+      var url = Uri.https(rUrl ?? '',
+          'Capstone_Project/CustomerService/CustomerDetails.php', params);
+      var response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        var jsonResponse = jsonDecode(response.body) as Map<String, dynamic>;
+        customers = jsonResponse['customers'];
+        print(customers);
+        return customers;
+      } else {
+        return [];
+      }
+    } finally {
+      client.close();
     }
   }
 
@@ -120,10 +135,9 @@ class _CustomersScreenState extends State<CustomersScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                snapshot.data![index]['firstName'].toString() +
-                                    " ".toString() +
-                                    snapshot.data![index]['lastName']
-                                        .toString(),
+                                snapshot.data![index]['name']
+                                    .toString()
+                                    .toString(),
                                 style: const TextStyle(
                                   fontWeight: FontWeight.w500,
                                   color: Colors.black87,

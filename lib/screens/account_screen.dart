@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:testnew/screens/auth/logout.dart';
 import 'package:testnew/screens/cart_screen.dart';
 import 'package:testnew/screens/customers/customers.dart';
 import 'package:testnew/screens/print_screen.dart';
@@ -18,7 +19,7 @@ class _AccountScreenState extends State<AccountScreen> {
     {'name': 'Edit Products', 'link': ''},
     {'name': 'View all Orders', 'link': ''},
     {'name': 'View Customers', 'link': const CustomersScreen()},
-    {'name': 'Logout', 'link': ''},
+    {'name': 'Logout', 'link': const LogOutScreen()},
   ];
   List pages = [
     const ProductsScreen(),

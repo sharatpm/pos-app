@@ -1,11 +1,13 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:testnew/screens/account_screen.dart';
 import 'package:testnew/screens/cart_screen.dart';
 import 'package:testnew/screens/print_screen.dart';
 import 'package:testnew/screens/products/products.dart';
 import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class AddCustomerScreen extends StatefulWidget {
   const AddCustomerScreen({super.key});
@@ -40,31 +42,49 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
     super.dispose();
   }
 
-  void addCustomer(
+  Future<bool> addCustomer(
     String name,
     String phoneNumber,
     String email,
     String address,
   ) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    var authToken = prefs.getString('auth_token');
+    var rUrl = prefs.getString("url");
     var client = http.Client();
     try {
-      var url = Uri.https('dummyjson.com', 'customer');
-      await http.post(
+      var url = Uri.https(
+          rUrl ?? '', 'Capstone_Project/CustomerService/CustomerDetails.php');
+      var response = await http.post(
         url,
-        body: {
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode(<String, String>{
+          'auth_token': authToken ?? '',
           'name': name,
-          'phone_number': phoneNumber,
+          'phone': phoneNumber,
           'email': email,
           'address': address,
-        },
+        }),
       );
       var request = {
+        'auth_token': authToken,
         'name': name,
         'phone_number': phoneNumber,
         'email': email,
-        'address': address
+        'address': address,
       };
       print(request);
+      var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes)) as Map;
+      print(decodedResponse);
+      if (decodedResponse['status'] == 'success') {
+        return true;
+      } else if (decodedResponse['status'] == 'error') {
+        return false;
+      } else {
+        return false;
+      }
     } finally {
       client.close();
     }
@@ -155,14 +175,13 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
                   foregroundColor: Colors.white,
                   backgroundColor: const Color.fromRGBO(143, 148, 251, 1),
                 ),
-                onPressed: () {
-                  addCustomer(
+                onPressed: () async {
+                  if (await addCustomer(
                     nameController.text,
                     phnumberController.text,
                     emailController.text,
                     addressController.text,
-                  );
-                  Navigator.pop(context);
+                  )) Navigator.pop(context);
                 },
                 child: const Text("Submit"),
               )
