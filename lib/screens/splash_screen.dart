@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:testnew/screens/auth/login.dart';
 import 'package:testnew/screens/auth/register.dart';
 import 'package:testnew/screens/products/products.dart';
 

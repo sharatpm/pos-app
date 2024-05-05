@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:testnew/screens/auth/otp.dart';
-import 'package:testnew/screens/products/products.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});

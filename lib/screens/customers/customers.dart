@@ -6,7 +6,6 @@ import 'package:testnew/screens/account_screen.dart';
 import 'package:testnew/screens/cart_screen.dart';
 import 'package:testnew/screens/customers/add_customer.dart';
 import 'package:testnew/screens/print_screen.dart';
-import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 import 'package:testnew/screens/products/products.dart';
