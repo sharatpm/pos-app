@@ -59,43 +59,59 @@ class Print {
     ];
   }
 
-  Future<Map<dynamic, dynamic>> retrieveOrderDetails(lineItems) async {
+  Future<Map<dynamic, dynamic>> retrieveOrderDetails() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    final String? vendorId = prefs.getString('vendor_id');
-    final String? authToken = prefs.getString('auth_token');
-    final orderDetails = {};
-    print("Vendor Id: ".toString() +
-        vendorId.toString() +
-        "& Auth Token: ".toString() +
-        authToken.toString());
-
-    var url = Uri.https('api.jsonbin.io', 'createOrder');
-    var response = await http.post(url, body: {
-      'vendor_id': vendorId,
-      'auth_token': authToken,
-      'line_items': lineItems
-    });
-    if (response.statusCode == 200) {
-      var jsonResponse =
-          convert.jsonDecode(response.body) as Map<String, dynamic>;
-      orderDetails['order_id'] = jsonResponse['order_id'];
-      orderDetails['tax_value'] = jsonResponse['tax_value'];
-      orderDetails['created_at'] = jsonResponse['created_at'];
-      orderDetails['total_price'] = jsonResponse['total_price'];
-      return orderDetails;
-    } else {
-      throw ();
-    }
-  }
-
-  sample(String check) async {
     await startDB();
     List carts = await getcarts();
     var lineItems = [];
     for (var cart in carts) {
-      lineItems.add({'id': cart.id, 'quantity': cart.quantity});
+      lineItems.add({'product_id': cart.id, 'quantity': cart.quantity});
     }
-    var orderDetails = await retrieveOrderDetails(lineItems);
+    print(lineItems);
+    final String? rurl = prefs.getString("url");
+    final String? vendorId = prefs.getString('vendor_id');
+    final String? authToken = prefs.getString('auth_token');
+    final orderDetails = {};
+    print("Vendor Id: $vendorId & Auth Token: $authToken");
+    if (authToken != null) {
+      var url = Uri.https(
+          rurl ?? '', 'Capstone_Project/OrderService/CompleteCart.php');
+      var response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: convert.jsonEncode({
+          'auth_token':
+              authToken.toString(), // Ensure authToken is converted to string
+          'line_items': lineItems,
+        }),
+      );
+      print(response.body);
+      if (response.statusCode == 200) {
+        var jsonResponse =
+            convert.jsonDecode(response.body) as Map<String, dynamic>;
+        orderDetails['order_id'] = jsonResponse['order_id'];
+        orderDetails['tax_value'] = jsonResponse['tax_value'];
+        orderDetails['created_at'] = jsonResponse['created_at'];
+        orderDetails['total_value'] = jsonResponse['total_value'];
+        sample(orderDetails);
+        print(orderDetails);
+        return orderDetails;
+      } else {
+        print("Request failed with status: ${response.statusCode}");
+        throw Exception('Failed to fetch order details');
+      }
+    } else {
+      print("Auth token is null");
+      throw Exception('Auth token is null');
+    }
+  }
+
+  sample(orderDetails) async {
+    await startDB();
+    await startDB();
+    List carts = await getcarts();
     bluetooth.isConnected.then((isConnected) {
       if (isConnected == true) {
         for (Cart cart in carts) {

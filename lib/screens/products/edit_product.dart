@@ -6,18 +6,20 @@ import 'package:simple_barcode_scanner/simple_barcode_scanner.dart';
 import 'package:testnew/screens/account/account_screen.dart';
 import 'package:testnew/screens/cart_screen.dart';
 import 'package:testnew/screens/print_screen.dart';
+import 'package:testnew/screens/products/edit_products_list.dart';
 import 'package:testnew/screens/products/products.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-class AddProductScreen extends StatefulWidget {
-  const AddProductScreen({super.key});
+class EditProductScreen extends StatefulWidget {
+  int id;
+  EditProductScreen({super.key, required this.id});
 
   @override
-  State<AddProductScreen> createState() => _AddProductScreenState();
+  State<EditProductScreen> createState() => _EditProductScreenState();
 }
 
-class _AddProductScreenState extends State<AddProductScreen> {
+class _EditProductScreenState extends State<EditProductScreen> {
   String message = '';
   List pages = [
     ProductsScreen(),
@@ -37,11 +39,43 @@ class _AddProductScreenState extends State<AddProductScreen> {
   void dispose() {
     titleController.dispose();
     priceController.dispose();
+    inventoryController.dispose();
     super.dispose();
   }
 
-  Future<bool> addProduct(
-      String title, String price, String inventory, String barcode) async {
+  getProduct() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    var authToken = prefs.getString('auth_token');
+    var rUrl = prefs.getString("url");
+    var client = http.Client();
+
+    try {
+      var params = {
+        "auth_token": authToken,
+        "product_id": widget.id.toString(),
+      };
+      var url = Uri.https(rUrl ?? '',
+          'Capstone_Project/ProductService/ProductDetails.php', params);
+      var response = await http.get(url);
+      var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes)) as Map;
+      print(decodedResponse);
+      if (decodedResponse['status'] == 'success') {
+        titleController.text = decodedResponse['product']['product_name'];
+        priceController.text = decodedResponse['product']['price'];
+        inventoryController.text =
+            decodedResponse['product']['inventory'].toString();
+        barcode = decodedResponse['product']['barcode'];
+        return true;
+      } else if (decodedResponse['status'] == 'error') {
+        print("Status error");
+      }
+    } finally {
+      client.close();
+    }
+  }
+
+  Future<bool> updateProduct(
+      String title, String price, String inventory) async {
     var client = http.Client();
 
     final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -51,23 +85,34 @@ class _AddProductScreenState extends State<AddProductScreen> {
     try {
       var url = Uri.https(
           rUrl ?? '', 'Capstone_Project/ProductService/ProductDetails.php');
-      var response = await http.post(
+      var fields = {
+        "product_name": title,
+        "price": price,
+        "inventory": inventory,
+        "barcode": barcode
+      };
+      var req = {
+        "auth_token": authToken,
+        "product_id": widget.id,
+        "fields": fields,
+      };
+      print(req.toString());
+      var response = await http.put(
         url,
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({
           "auth_token": authToken,
-          "product_name": title,
-          "price": price,
-          "inventory": inventory,
-          "barcode": barcode,
+          "product_id": widget.id,
+          "fields": fields,
         }),
       );
       var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes)) as Map;
-      prefs.setString('message', decodedResponse['message']);
       print(decodedResponse);
       if (decodedResponse['status'] == 'success') {
         return true;
-      } else if (decodedResponse['status'] == 'error') {
+      }
+      if (decodedResponse['status'] == 'error') {
+        print(message);
         setState(() {
           message = decodedResponse['message'];
         });
@@ -78,6 +123,12 @@ class _AddProductScreenState extends State<AddProductScreen> {
     } finally {
       client.close();
     }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getProduct();
   }
 
   @override
@@ -93,7 +144,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
           const Padding(
             padding: EdgeInsets.fromLTRB(15, 20, 15, 10),
             child: Text(
-              "Add Product",
+              "Edit Product",
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 25,
@@ -143,6 +194,51 @@ class _AddProductScreenState extends State<AddProductScreen> {
               TextButton(
                 style: TextButton.styleFrom(
                   foregroundColor: Colors.white,
+                  backgroundColor: Colors.red,
+                ),
+                onPressed: () async {
+                  var client = http.Client();
+                  try {
+                    final SharedPreferences prefs =
+                        await SharedPreferences.getInstance();
+                    final rUrl = prefs.getString('url');
+                    final vendorId = prefs.getString('vendor_id');
+                    final authToken = prefs.getString('auth_token');
+                    var url = Uri.https(rUrl ?? '',
+                        'Capstone_Project/ProductService/ProductDetails.php');
+                    var response = await http.delete(
+                      url,
+                      headers: {
+                        'Content-Type': 'application/json',
+                      },
+                      body: jsonEncode({
+                        'auth_token': authToken,
+                        'vendor_id': vendorId,
+                        'product_id': widget.id,
+                      }),
+                    );
+                    var decodedResponse =
+                        jsonDecode(utf8.decode(response.bodyBytes));
+                    print('...................');
+                    print(response.body);
+                    print('...................');
+                    if (decodedResponse['status'] == 'success') {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const EditProductList(),
+                        ),
+                      );
+                    } else {}
+                  } finally {
+                    client.close();
+                  }
+                },
+                child: const Text('Delete'),
+              ),
+              TextButton(
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.white,
                   backgroundColor: scannerButtonColor,
                 ),
                 onPressed: () {
@@ -168,20 +264,17 @@ class _AddProductScreenState extends State<AddProductScreen> {
                   print("Price: " + priceController.text.toString());
                   print("Title: " + titleController.text.toString());
                   print("Inventory: " + inventoryController.text.toString());
-                  if (await addProduct(
+                  if (await updateProduct(
                     titleController.text.toString(),
                     priceController.text.toString(),
                     inventoryController.text.toString(),
-                    barcode = '495579489',
                   )) {
-                    final SharedPreferences prefs =
-                        await SharedPreferences.getInstance();
-                    var message = prefs.getString('message');
-                    print(message);
-                    Navigator.pop(context);
+                    Navigator.pop(
+                      context,
+                    );
                   }
                 },
-                child: const Text("Submit"),
+                child: const Text("Update"),
               )
             ],
           ),
@@ -191,7 +284,6 @@ class _AddProductScreenState extends State<AddProductScreen> {
         message,
         style: const TextStyle(
           fontWeight: FontWeight.w500,
-          backgroundColor: Colors.lightGreen,
           color: Colors.red,
           fontSize: 15,
         ),

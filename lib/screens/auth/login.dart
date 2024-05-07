@@ -1,10 +1,13 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:path/path.dart';
+import 'package:sqflite/sqflite.dart';
 
 import 'package:flutter/material.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:testnew/screens/auth/otp.dart';
+import 'package:testnew/screens/auth/register.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -16,6 +19,12 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final loginController = TextEditingController();
   final passwordController = TextEditingController();
+  String message = '';
+
+  @override
+  initState() {
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -148,6 +157,8 @@ class _LoginScreenState extends State<LoginScreen> {
                               loginController.text,
                               passwordController.text,
                             )) {
+                              var db = await getDB();
+                              print(await db.rawDelete('DELETE FROM carts'));
                               final SharedPreferences prefs =
                                   await SharedPreferences.getInstance();
                               prefs.setString('email', loginController.text);
@@ -163,15 +174,22 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(
-                    height: 70,
-                  ),
                   FadeInUp(
                     duration: const Duration(milliseconds: 2000),
-                    child: const Text(
-                      "Forgot Password?",
-                      style: TextStyle(
-                        color: Color.fromRGBO(143, 148, 251, 1),
+                    child: TextButton(
+                      onPressed: () {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const RegisterScreen(),
+                          ),
+                        );
+                      },
+                      child: const Text(
+                        "Don't have an Account? Register",
+                        style: TextStyle(
+                          color: Color.fromRGBO(143, 148, 251, 1),
+                        ),
                       ),
                     ),
                   ),
@@ -181,6 +199,16 @@ class _LoginScreenState extends State<LoginScreen> {
           ],
         ),
       ),
+      floatingActionButton: Text(
+        message,
+        style: const TextStyle(
+          fontWeight: FontWeight.w500,
+          backgroundColor: Colors.white,
+          color: Colors.red,
+          fontSize: 15,
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 
@@ -203,6 +231,9 @@ class _LoginScreenState extends State<LoginScreen> {
       if (decodedResponse['status'] == 'success') {
         return true;
       } else {
+        setState(() {
+          message = decodedResponse['message'];
+        });
         return false;
       }
     } finally {
@@ -220,6 +251,19 @@ class _LoginScreenState extends State<LoginScreen> {
     // } finally {
     //   client.close();
     // }
+  }
+
+  Future<Database> getDB() async {
+    final database = openDatabase(
+      join(await getDatabasesPath(), 'carts.db'),
+      onCreate: (db, version) {
+        return db.execute(
+          'CREATE TABLE carts(id INTEGER PRIMARY KEY, price FLOAT, title TEXT, barcode INTEGER, quantity INTEGER)',
+        );
+      },
+      version: 1,
+    );
+    return database;
   }
 
   getURL() async {

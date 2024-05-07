@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:animate_do/animate_do.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:testnew/screens/auth/login.dart';
 import 'package:testnew/screens/products/products.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class InfoScreen extends StatefulWidget {
   const InfoScreen({Key? key}) : super(key: key);
@@ -10,8 +14,11 @@ class InfoScreen extends StatefulWidget {
 }
 
 class _InfoScreenState extends State<InfoScreen> {
-  final loginController = TextEditingController();
-  final passwordController = TextEditingController();
+  final nameController = TextEditingController();
+  final phoneController = TextEditingController();
+  final gstController = TextEditingController();
+  final addressController = TextEditingController();
+  final typeController = TextEditingController();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -55,6 +62,7 @@ class _InfoScreenState extends State<InfoScreen> {
                                 ),
                               ),
                               child: TextField(
+                                controller: nameController,
                                 decoration: InputDecoration(
                                   border: InputBorder.none,
                                   hintText: "Name",
@@ -74,6 +82,7 @@ class _InfoScreenState extends State<InfoScreen> {
                                 ),
                               ),
                               child: TextField(
+                                controller: phoneController,
                                 decoration: InputDecoration(
                                   border: InputBorder.none,
                                   hintText: "Phone Number",
@@ -93,6 +102,7 @@ class _InfoScreenState extends State<InfoScreen> {
                                 ),
                               ),
                               child: TextField(
+                                controller: gstController,
                                 decoration: InputDecoration(
                                   border: InputBorder.none,
                                   hintText: "GST No. ",
@@ -112,6 +122,7 @@ class _InfoScreenState extends State<InfoScreen> {
                                 ),
                               ),
                               child: TextField(
+                                controller: addressController,
                                 decoration: InputDecoration(
                                   border: InputBorder.none,
                                   hintText: "Address",
@@ -124,6 +135,7 @@ class _InfoScreenState extends State<InfoScreen> {
                             Container(
                               padding: const EdgeInsets.all(8.0),
                               child: TextField(
+                                controller: typeController,
                                 decoration: InputDecoration(
                                   border: InputBorder.none,
                                   hintText: "Type",
@@ -168,15 +180,28 @@ class _InfoScreenState extends State<InfoScreen> {
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          onPressed: () {
-                            print(loginController.text);
-                            print(passwordController.text);
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const ProductsScreen(),
-                              ),
-                            );
+                          onPressed: () async {
+                            final SharedPreferences prefs =
+                                await SharedPreferences.getInstance();
+                            var email = prefs.getString('email') ?? '';
+                            var password = prefs.getString('password') ?? '';
+                            print(email);
+                            if (await register(
+                              email,
+                              password,
+                              nameController.text,
+                              phoneController.text,
+                              gstController.text,
+                              addressController.text,
+                              typeController.text,
+                            )) {
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => LoginScreen(),
+                                ),
+                              );
+                            }
                           },
                         ),
                       ),
@@ -189,5 +214,43 @@ class _InfoScreenState extends State<InfoScreen> {
         ),
       ),
     );
+  }
+
+  Future<bool> register(String email, String password, String name,
+      String phone, String gst, String address, String type) async {
+    var client = http.Client();
+    try {
+      var url = Uri.https(
+          await getURL(), 'Capstone_Project/AuthenticationService/SignUp.php');
+      var response = await http.post(
+        url,
+        body: {
+          'email': email,
+          'password': password,
+          'name': name,
+          'phno': phone,
+          'gst': gst,
+          'address': address,
+          'type': type,
+        },
+      );
+      print("...................");
+      print(response.body);
+      print("...................");
+      var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
+      if (decodedResponse['status'] == 'success') {
+        return true;
+      } else {
+        return false;
+      }
+    } finally {
+      client.close();
+    }
+  }
+
+  getURL() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final url = prefs.getString('url');
+    return url;
   }
 }

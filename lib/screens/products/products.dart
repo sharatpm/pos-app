@@ -10,14 +10,15 @@ import 'package:testnew/model/cart.dart';
 import 'package:testnew/screens/print_screen.dart';
 import 'package:testnew/screens/products/add_product.dart';
 import 'dart:convert' as convert;
-import '../account_screen.dart';
+import '../account/account_screen.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
 import 'package:testnew/screens/cart_screen.dart';
 
 class ProductsScreen extends StatefulWidget {
-  const ProductsScreen({super.key});
+  String message;
+  ProductsScreen({super.key, this.message = ''});
 
   @override
   // ignore: library_private_types_in_public_api
@@ -26,10 +27,11 @@ class ProductsScreen extends StatefulWidget {
 
 class _ProductsScreenState extends State<ProductsScreen> {
   String result = '';
+  String message = '';
   var cart = {};
   var products = [];
   List pages = [
-    const ProductsScreen(),
+    ProductsScreen(),
     CartScreen(),
     PrintScreen(),
     const AccountScreen(),
@@ -95,7 +97,10 @@ class _ProductsScreenState extends State<ProductsScreen> {
 
   Future<List> fetchData() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
+    message = prefs.getString('message') ?? '';
+    print(message);
     final String? auth_token = prefs.getString('auth_token');
+    print(auth_token);
     final String? rurl = prefs.getString("url");
     final params = {
       'auth_token': auth_token,
@@ -175,9 +180,9 @@ class _ProductsScreenState extends State<ProductsScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) =>
-                              const AddProductScreen()), //Sharat
-                    );
+                        builder: (context) => const AddProductScreen(),
+                      ), //Sharat
+                    ).then((_) => setState(() {}));
                   },
                   child: const Icon(Icons.add),
                 )
@@ -243,6 +248,15 @@ class _ProductsScreenState extends State<ProductsScreen> {
           ),
         ],
       ),
+      floatingActionButton: Text(
+        message,
+        style: const TextStyle(
+          fontWeight: FontWeight.w500,
+          color: Colors.green,
+          fontSize: 15,
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         backgroundColor: const Color.fromRGBO(143, 148, 251, 1),

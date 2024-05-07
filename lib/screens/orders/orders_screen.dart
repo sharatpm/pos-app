@@ -1,55 +1,63 @@
+// ignore_for_file: avoid_print
+
+import 'dart:ui';
+
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:flutter/widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:simple_barcode_scanner/simple_barcode_scanner.dart';
-import 'package:testnew/screens/account/account_screen.dart';
-import 'package:testnew/screens/cart_screen.dart';
-import 'package:testnew/screens/customers/add_customer.dart';
+import 'package:http/http.dart' as http;
+import 'package:testnew/model/cart.dart';
 import 'package:testnew/screens/print_screen.dart';
-import 'dart:convert';
-
+import 'package:testnew/screens/products/add_product.dart';
 import 'package:testnew/screens/products/products.dart';
+import 'dart:convert' as convert;
+import '../account/account_screen.dart';
+import 'package:path/path.dart';
+import 'package:sqflite/sqflite.dart';
 
-class CustomersScreen extends StatefulWidget {
-  const CustomersScreen({super.key});
+import 'package:testnew/screens/cart_screen.dart';
+
+class OrdersScreen extends StatefulWidget {
+  const OrdersScreen({super.key});
 
   @override
-  State<CustomersScreen> createState() => _CustomersScreenState();
+  State<OrdersScreen> createState() => _OrdersScreenState();
 }
 
-class _CustomersScreenState extends State<CustomersScreen> {
-  var customers = [];
+class _OrdersScreenState extends State<OrdersScreen> {
+  var orders = {};
   List pages = [
     ProductsScreen(),
-    CartScreen(),
+    const CartScreen(),
     PrintScreen(),
     const AccountScreen(),
   ];
-
   Future<List> fetchData() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    var authToken = prefs.getString('auth_token');
-    var rUrl = prefs.getString("url");
-    var client = http.Client();
-    try {
-      var params = {
-        'auth_token': authToken ?? '',
-        'all_customers': "true",
-      };
-      var url = Uri.https(rUrl ?? '',
-          'Capstone_Project/CustomerService/CustomerDetails.php', params);
-      var response = await http.get(url);
-
-      if (response.statusCode == 200) {
-        var jsonResponse = jsonDecode(response.body) as Map<String, dynamic>;
-        customers = jsonResponse['customers'];
-        print(customers);
-        return customers;
-      } else {
-        return [];
-      }
-    } finally {
-      client.close();
+    final String? authToken = prefs.getString('auth_token');
+    print("Auth Token: ".toString() + authToken.toString());
+    final String? rurl = prefs.getString("url");
+    final params = {
+      'auth_token': authToken,
+    };
+    var url = Uri.https(
+      rurl ?? '',
+      'Capstone_Project/OrderService/CompleteCart.php',
+      params,
+    );
+    var response = await http.get(url);
+    print('....................');
+    print(response.body);
+    print('....................');
+    if (response.statusCode == 200) {
+      var jsonResponse = convert.jsonDecode(response.body);
+      print(jsonResponse['status']);
+      print(jsonResponse['orders'].runtimeType);
+      return jsonResponse['orders'];
+    } else {
+      throw ();
     }
   }
 
@@ -58,56 +66,26 @@ class _CustomersScreenState extends State<CustomersScreen> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: const Color.fromRGBO(143, 148, 251, 1),
-        title: const Text('POS App'),
-        actions: [
-          IconButton(
-            onPressed: () async {
-              await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const SimpleBarcodeScannerPage(),
-                  ));
-              setState(() {
-                // if (res is String) {
-                //   result = res;
-                //   print(result);
-                // }
-              });
-            },
-            icon: const Icon(Icons.view_in_ar),
-          ),
-        ],
+        title: const Text('POS App',
+            style: TextStyle(
+              fontWeight: FontWeight.w500,
+              fontSize: 25,
+            )),
       ),
       body: Column(
         children: [
-          Padding(
+          const Padding(
             padding: EdgeInsets.fromLTRB(15, 20, 15, 10),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  "All Customers",
+                Text(
+                  "All Orders",
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 25,
                   ),
                 ),
-                TextButton(
-                  style: TextButton.styleFrom(
-                    foregroundColor: Colors.white,
-                    backgroundColor: const Color.fromRGBO(143, 148, 251, 1),
-                  ),
-                  onPressed: () {
-                    print("Added");
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) =>
-                              const AddCustomerScreen()), //Sharat
-                    );
-                  },
-                  child: const Icon(Icons.add),
-                )
               ],
             ),
           ),
@@ -116,6 +94,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
               builder: (ctx, snapshot) {
                 if (snapshot.connectionState == ConnectionState.done) {
                   // If we got an error
+                  print(snapshot.hasData);
                   if (snapshot.hasError) {
                     return Center(
                       child: Text(
@@ -134,24 +113,21 @@ class _CustomersScreenState extends State<CustomersScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                snapshot.data![index]['name']
-                                    .toString()
-                                    .toString(),
+                                "Order #".toString() +
+                                    snapshot.data![index]['order_id']
+                                        .toString(),
                                 style: const TextStyle(
                                   fontWeight: FontWeight.w500,
                                   color: Colors.black87,
                                   fontSize: 16,
                                 ),
                               ),
-                              Text(
-                                snapshot.data![index]['phone'].toString(),
-                                style: const TextStyle(
-                                  color: Colors.black38,
-                                  fontSize: 12,
-                                ),
-                              )
+                              OrderBlock(
+                                products: snapshot.data![index]['products'],
+                              ),
                             ],
                           ),
+                          trailing: Text(snapshot.data![index]['created_at']),
                         );
                       },
                     );
@@ -198,6 +174,46 @@ class _CustomersScreenState extends State<CustomersScreen> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class OrderBlock extends StatefulWidget {
+  List<dynamic> products;
+  OrderBlock({
+    super.key,
+    required this.products,
+  });
+
+  @override
+  State<OrderBlock> createState() => _OrderBlockState();
+}
+
+class _OrderBlockState extends State<OrderBlock> {
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      scrollDirection: Axis.vertical,
+      shrinkWrap: true,
+      itemCount: widget.products.length,
+      itemBuilder: (context, index) {
+        return ListTile(
+          title: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                widget.products[index]['product_name'],
+                style: const TextStyle(
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black87,
+                  fontSize: 16,
+                ),
+              ),
+            ],
+          ),
+          trailing: Text(widget.products[index]['quantity'].toString()),
+        );
+      },
     );
   }
 }

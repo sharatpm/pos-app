@@ -103,11 +103,10 @@ class _OTPScreenState extends State<OTPScreen> {
                                     responseData['vendor_id'].toString());
                                 await prefs.setString('auth_token',
                                     responseData['auth_token'].toString());
-                                Navigator.push(
+                                Navigator.pushReplacement(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) =>
-                                        const ProductsScreen(),
+                                    builder: (context) => ProductsScreen(),
                                   ),
                                 );
                               }

@@ -1,9 +1,12 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import 'package:flutter/material.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:testnew/screens/account/account_screen.dart';
 import 'package:testnew/screens/auth/login.dart';
 
 class LogOutScreen extends StatefulWidget {
@@ -62,10 +65,21 @@ class _LogOutScreenState extends State<LogOutScreen> {
           ),
         );
       } else {
-        Navigator.pop(context);
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const AccountScreen(),
+          ),
+        );
       }
     } finally {
       client.close();
     }
+  }
+
+  getURL() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final url = prefs.getString('url');
+    return url;
   }
 }

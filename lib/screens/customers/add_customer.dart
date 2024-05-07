@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:testnew/screens/account_screen.dart';
+import 'package:testnew/screens/account/account_screen.dart';
 import 'package:testnew/screens/cart_screen.dart';
 import 'package:testnew/screens/print_screen.dart';
 import 'package:testnew/screens/products/products.dart';
@@ -18,7 +18,7 @@ class AddCustomerScreen extends StatefulWidget {
 
 class _AddCustomerScreenState extends State<AddCustomerScreen> {
   List pages = [
-    const ProductsScreen(),
+    ProductsScreen(),
     CartScreen(),
     PrintScreen(),
     const AccountScreen(),
@@ -166,7 +166,12 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
                   backgroundColor: Colors.red,
                 ),
                 onPressed: () {
-                  Navigator.pop(context);
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const AccountScreen(),
+                    ),
+                  );
                 },
                 child: const Text('Cancel'),
               ),
@@ -181,7 +186,11 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
                     phnumberController.text,
                     emailController.text,
                     addressController.text,
-                  )) Navigator.pop(context);
+                  )) {
+                    Navigator.pop(
+                      context,
+                    );
+                  }
                 },
                 child: const Text("Submit"),
               )

@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:testnew/screens/account/update_account.dart';
 import 'package:testnew/screens/auth/logout.dart';
 import 'package:testnew/screens/cart_screen.dart';
 import 'package:testnew/screens/customers/customers.dart';
+import 'package:testnew/screens/orders/orders_screen.dart';
 import 'package:testnew/screens/print_screen.dart';
+import 'package:testnew/screens/products/edit_products_list.dart';
 import 'package:testnew/screens/products/products.dart';
 
 class AccountScreen extends StatefulWidget {
@@ -14,18 +17,17 @@ class AccountScreen extends StatefulWidget {
 
 class _AccountScreenState extends State<AccountScreen> {
   List pointers = [
-    {'name': 'Settings', 'link': ''},
-    {'name': 'Edit Profile', 'link': ''},
-    {'name': 'Edit Products', 'link': ''},
-    {'name': 'View all Orders', 'link': ''},
+    {'name': 'Edit Profile', 'link': const UpdateAccount()},
+    {'name': 'Edit Products', 'link': const EditProductList()},
+    {'name': 'View all Orders', 'link': const OrdersScreen()},
     {'name': 'View Customers', 'link': const CustomersScreen()},
     {'name': 'Logout', 'link': const LogOutScreen()},
   ];
   List pages = [
-    const ProductsScreen(),
+    ProductsScreen(),
     CartScreen(),
     PrintScreen(),
-    const AccountScreen(),
+    AccountScreen(),
   ];
   @override
   Widget build(BuildContext context) {
@@ -44,7 +46,7 @@ class _AccountScreenState extends State<AccountScreen> {
                 children: [
                   TextButton(
                     onPressed: () {
-                      Navigator.push(
+                      Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
                             builder: (context) =>

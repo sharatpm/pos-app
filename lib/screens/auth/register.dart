@@ -3,7 +3,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:testnew/screens/auth/otp.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:testnew/screens/auth/login.dart';
+import 'package:testnew/screens/auth/info_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -128,7 +130,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   hintStyle:
                                       TextStyle(color: Colors.grey[700])),
                             ),
-                          )
+                          ),
                         ],
                       ),
                     ),
@@ -166,23 +168,41 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           onPressed: () async {
                             if (passwordController.text ==
                                 cpasswordController.text) {
-                              if (await register(emailController.text,
-                                  passwordController.text)) {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => OTPScreen(),
-                                  ),
-                                );
-                              }
+                              final SharedPreferences prefs =
+                                  await SharedPreferences.getInstance();
+                              prefs.setString('email', emailController.text);
+                              prefs.setString(
+                                  'password', passwordController.text);
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => InfoScreen(),
+                                ),
+                              );
                             }
                           },
                         ),
                       ),
                     ),
                   ),
-                  const SizedBox(
-                    height: 70,
+                  FadeInUp(
+                    duration: const Duration(milliseconds: 2000),
+                    child: TextButton(
+                      onPressed: () {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const LoginScreen(),
+                          ),
+                        );
+                      },
+                      child: const Text(
+                        "Already have an Account? Login",
+                        style: TextStyle(
+                          color: Color.fromRGBO(143, 148, 251, 1),
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -196,7 +216,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Future<bool> register(String email, String password) async {
     var client = http.Client();
     try {
-      var url = Uri.https('8227-182-66-218-123.ngrok-free.app',
+      var url = Uri.http('8227-182-66-218-123.ngrok-free.app',
           'Capstone_Project/AuthenticationService/Signup.php');
       var response = await http.post(
         url,

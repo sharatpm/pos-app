@@ -1,5 +1,5 @@
 import 'package:simple_barcode_scanner/simple_barcode_scanner.dart';
-import 'package:testnew/screens/account_screen.dart';
+import 'package:testnew/screens/account/account_screen.dart';
 import 'package:testnew/screens/cart_screen.dart';
 import 'package:testnew/screens/products/products.dart';
 import '../print.dart';
@@ -18,7 +18,7 @@ class _PrintScreenState extends State<PrintScreen> {
   var cart = {};
   var products = [];
   List pages = [
-    const ProductsScreen(),
+    ProductsScreen(),
     CartScreen(),
     PrintScreen(),
     const AccountScreen(),
@@ -199,7 +199,7 @@ class _PrintScreenState extends State<PrintScreen> {
                   style: ElevatedButton.styleFrom(
                       backgroundColor: const Color.fromRGBO(143, 148, 251, 1)),
                   onPressed: () {
-                    testPrint.sample('Sharat');
+                    testPrint.retrieveOrderDetails();
                   },
                   child: const Text('Print Bill',
                       style: TextStyle(color: Colors.white)),

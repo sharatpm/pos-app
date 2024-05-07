@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:testnew/screens/splash_screen.dart';
+import 'package:testnew/screens/auth/splash_screen.dart';
 
 void main() => runApp(const MaterialApp(
       debugShowCheckedModeBanner: false,
