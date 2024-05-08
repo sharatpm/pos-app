@@ -30,6 +30,7 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
   final addressController = TextEditingController();
 
   String barcode = '';
+  String message = '';
 
   var scannerButtonColor = Colors.red;
 
@@ -81,6 +82,7 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
       if (decodedResponse['status'] == 'success') {
         return true;
       } else if (decodedResponse['status'] == 'error') {
+        message = decodedResponse['message'];
         return false;
       } else {
         return false;
@@ -229,6 +231,16 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
           ),
         ],
       ),
+      floatingActionButton: Text(
+        message,
+        style: const TextStyle(
+          fontWeight: FontWeight.w500,
+          backgroundColor: Colors.white,
+          color: Colors.red,
+          fontSize: 15,
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 }

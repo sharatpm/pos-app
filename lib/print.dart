@@ -11,6 +11,9 @@ import '/printerenum.dart' as printenum;
 
 class Print {
   BlueThermalPrinter bluetooth = BlueThermalPrinter.instance;
+  String order_id = '';
+  String created_at = '';
+  String total_value = '';
 
   Future<void> startDB() async {
     WidgetsFlutterBinding.ensureInitialized();
@@ -95,6 +98,9 @@ class Print {
         orderDetails['tax_value'] = jsonResponse['tax_value'];
         orderDetails['created_at'] = jsonResponse['created_at'];
         orderDetails['total_value'] = jsonResponse['total_value'];
+        order_id = jsonResponse['order_id'];
+        created_at = jsonResponse['created_at'];
+        total_value = jsonResponse['total_value'];
         sample(orderDetails);
         print(orderDetails);
         return orderDetails;
@@ -114,6 +120,14 @@ class Print {
     List carts = await getcarts();
     bluetooth.isConnected.then((isConnected) {
       if (isConnected == true) {
+        if (order_id != '') {
+          bluetooth.printCustom('ORDER #'.toString() + order_id,
+              printenum.Size.boldLarge.val, printenum.Align.center.val);
+
+          bluetooth.printCustom("Created At: ".toString() + created_at,
+              printenum.Size.medium.val, printenum.Align.right.val);
+          bluetooth.printNewLine();
+        }
         for (Cart cart in carts) {
           double totalPrice = cart.price * cart.quantity.toDouble();
           bluetooth.printCustom(
@@ -128,6 +142,9 @@ class Print {
         }
         bluetooth.paperCut();
       }
+
+      bluetooth.printCustom("Total: ".toString() + total_value,
+          printenum.Size.boldMedium.val, printenum.Align.left.val);
     });
   }
 }

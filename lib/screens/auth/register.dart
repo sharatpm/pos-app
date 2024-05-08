@@ -15,6 +15,7 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
+  String message = '';
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final cpasswordController = TextEditingController();
@@ -210,6 +211,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ],
         ),
       ),
+      floatingActionButton: Text(
+        message,
+        style: const TextStyle(
+          fontWeight: FontWeight.w500,
+          backgroundColor: Colors.white,
+          color: Colors.red,
+          fontSize: 15,
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 

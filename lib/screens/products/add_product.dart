@@ -191,7 +191,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
         message,
         style: const TextStyle(
           fontWeight: FontWeight.w500,
-          backgroundColor: Colors.lightGreen,
+          backgroundColor: Colors.white,
           color: Colors.red,
           fontSize: 15,
         ),

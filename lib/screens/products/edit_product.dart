@@ -284,6 +284,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
         message,
         style: const TextStyle(
           fontWeight: FontWeight.w500,
+          backgroundColor: Colors.white,
           color: Colors.red,
           fontSize: 15,
         ),

@@ -14,6 +14,7 @@ class OTPScreen extends StatefulWidget {
 }
 
 class _OTPScreenState extends State<OTPScreen> {
+  String message = '';
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -112,6 +113,9 @@ class _OTPScreenState extends State<OTPScreen> {
                               }
                               print('Login Successful');
                             } else {
+                              setState(() {
+                                message = responseData['message'];
+                              });
                               // Handle error response
                               print('Login Error: ${responseData['message']}');
                             }
@@ -135,6 +139,16 @@ class _OTPScreenState extends State<OTPScreen> {
           ],
         ),
       ),
+      floatingActionButton: Text(
+        message,
+        style: const TextStyle(
+          fontWeight: FontWeight.w500,
+          backgroundColor: Colors.white,
+          color: Colors.red,
+          fontSize: 15,
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 }
